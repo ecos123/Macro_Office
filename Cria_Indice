@@ -1,20 +1,60 @@
+```vba
+Option Explicit
+' Força declaração explícita de todas as variáveis, evitando erros de digitação e tipagem implícita
+
 Sub Cria_Indice()
 
-  Dim Plan_TT, Plan_Atual As Integer
+    Dim PlanIndice As Worksheet
+    ' Referência à planilha onde o índice será montado
 
-  Plan_TT = Sheets.Count
-  Plan_Atual = 1
+    Dim Plan_TT As Long, Plan_Atual As Long
+    ' Plan_TT guarda o total de planilhas, Plan_Atual é o contador do loop
 
-  Do While Plan_Atual <= Plan_TT
+    Dim Link_Ativo As String, Nome_Link_Ativo As String
+    ' Link_Ativo guarda o destino do hyperlink, Nome_Link_Ativo guarda o texto exibido
 
-  Cells(Plan_Atual, 1).Activate
-  ActiveCell.Value = Sheets(Plan_Atual).Name
+    Dim CelDestino As Range
+    ' Referência direta à célula onde o link será inserido, evitando Activate/Selection
 
-  Link_Ativo = Sheets(Plan_Atual).Name & "!A1"
-  Nome_Link_Ativo = Sheets(Plan_Atual).Name
+    Set PlanIndice = ThisWorkbook.Sheets("Índice")
+    ' Define explicitamente a planilha de destino, independente da planilha ativa no momento
 
-  ActiveSheet.Hyperlinks.Add Anchor:=Selection, Address:="", SubAddress:=Link_Ativo, TextToDisplay:=Nome_Link_Ativo
+    Plan_TT = ThisWorkbook.Sheets.Count
+    ' Conta quantas planilhas existem na pasta de trabalho
 
-  Plan_Atual = Plan_Atual + 1
+    Application.ScreenUpdating = False
+    ' Desativa a atualização de tela durante o loop, melhorando performance
 
-Loop
+    For Plan_Atual = 1 To Plan_TT
+    ' Percorre todas as planilhas, uma por uma
+
+        If ThisWorkbook.Sheets(Plan_Atual).Name <> PlanIndice.Name Then
+        ' Pula a própria planilha de índice, evitando que ela crie um link para si mesma
+
+            Set CelDestino = PlanIndice.Cells(Plan_Atual, 1)
+            ' Aponta para a célula da linha correspondente, coluna A, na planilha de índice
+
+            Nome_Link_Ativo = ThisWorkbook.Sheets(Plan_Atual).Name
+            ' Guarda o nome da planilha atual do loop
+
+            Link_Ativo = "'" & Nome_Link_Ativo & "'!A1"
+            ' Monta o endereço do link para a célula A1 da planilha atual, com aspas simples para suportar espaços no nome
+
+            CelDestino.Value = Nome_Link_Ativo
+            ' Escreve o nome da planilha na célula de destino
+
+            PlanIndice.Hyperlinks.Add Anchor:=CelDestino, Address:="", _
+                SubAddress:=Link_Ativo, TextToDisplay:=Nome_Link_Ativo
+            ' Cria o hyperlink na célula, apontando para a planilha correspondente
+
+        End If
+        ' Fim da checagem de exclusão da planilha de índice
+
+    Next Plan_Atual
+    ' Avança para a próxima planilha do loop
+
+    Application.ScreenUpdating = True
+    ' Reativa a atualização de tela ao final do processo
+
+End Sub
+```
